@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { JiraSearchResponse } from '../types/jira';
 
-// Use the backend API URL instead of direct Jira API
-const API_BASE_URL = '/api/jira';
+// Use the environment variable for the backend API URL
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/jira`;
 
 const jiraApi = axios.create({
     baseURL: API_BASE_URL,
