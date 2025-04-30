@@ -17,6 +17,7 @@ export interface SearchParams {
     status?: string[];
     priority?: string[];
     assignee?: string[];
+    hasDependencies?: boolean;
     createdAfter?: string;
     createdBefore?: string;
     startAt?: number;
@@ -47,6 +48,12 @@ export const searchIssues = async (params: SearchParams = {}): Promise<JiraSearc
                 jql.push(`assignee in (${params.assignee.map(a => `"${a}"`).join(',')})`);
             }
         }
+
+        if (params.hasDependencies === true) {
+            jql.push('issueFunction in linkedIssuesOf("issueKey")');
+        } else if (params.hasDependencies === false) {
+            jql.push('NOT issueFunction in linkedIssuesOf("issueKey")');
+        }
         
         if (params.createdAfter) {
             jql.push(`created >= "${params.createdAfter}"`);
@@ -76,7 +83,8 @@ export const searchIssues = async (params: SearchParams = {}): Promise<JiraSearc
                 'assignee',
                 'created',
                 'updated',
-                'project'
+                'project',
+                'issuelinks'
             ]
         });
 

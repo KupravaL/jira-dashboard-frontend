@@ -18,10 +18,12 @@ import {
     TextField,
     Button,
     SelectChangeEvent,
-    Link
+    Link,
+    Switch,
+    FormControlLabel
 } from '@mui/material';
 import { searchIssues, getProjects, getAssignees, SearchParams } from '../services/jiraService';
-import { getStoredPriorities, storePriority, CustomPriorities } from '../services/customPriorityService';
+import { getStoredPriorities, storePriority, removePriority, CustomPriorities } from '../services/customPriorityService';
 import { JiraIssue } from '../types/jira';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
@@ -278,6 +280,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                                         ))}
                                     </Select>
                                 </FormControl>
+
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={filters.hasDependencies || false}
+                                            onChange={(e) => handleFilterChange('hasDependencies', e.target.checked)}
+                                            color="primary"
+                                        />
+                                    }
+                                    label="Has Dependencies"
+                                    sx={{ minWidth: 200 }}
+                                />
 
                                 <Button
                                     variant="outlined"
