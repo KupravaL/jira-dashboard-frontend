@@ -21,6 +21,7 @@ import {
     Link
 } from '@mui/material';
 import { searchIssues, getProjects, getAssignees, SearchParams } from '../services/jiraService';
+import { getStoredPriorities, storePriority, CustomPriorities } from '../services/customPriorityService';
 import { JiraIssue } from '../types/jira';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonIcon from '@mui/icons-material/Person';
@@ -41,21 +42,6 @@ const getStatusColor = (status: string) => {
     }
 };
 
-const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-        case 'highest':
-            return 'error';
-        case 'high':
-            return 'warning';
-        case 'medium':
-            return 'info';
-        case 'low':
-            return 'success';
-        default:
-            return 'default';
-    }
-};
-
 interface DashboardProps {
     onLogout: () => void;
 }
@@ -68,11 +54,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const [assignees, setAssignees] = useState<any[]>([]);
     const [filters, setFilters] = useState<SearchParams>({});
     const [showFilters, setShowFilters] = useState(true);
+    const [customPriorities, setCustomPriorities] = useState<CustomPriorities>({});
 
     const statusOptions = ['To Do', 'In Progress', 'Done'];
-    const priorityOptions = ['Highest', 'High', 'Medium', 'Low'];
+    const customPriorityOptions = ['Urgent', 'High', 'Medium', 'Low'];
 
     const DEFAULT_ASSIGNEES = ['Vakho Tabatadze', 'Gigi gvaramia'];
+
+    // Load priorities when component mounts
+    useEffect(() => {
+        const loadPriorities = async () => {
+            try {
+                const priorities = await getStoredPriorities();
+                setCustomPriorities(priorities);
+            } catch (error) {
+                console.error('Failed to load priorities:', error);
+            }
+        };
+        loadPriorities();
+    }, []);
 
     // Separate effect for fetching assignees
     useEffect(() => {
@@ -117,6 +117,43 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
     const handleFilterChange = (field: keyof SearchParams, value: any) => {
         setFilters(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handlePriorityChange = async (issueKey: string, priority: string) => {
+        try {
+            if (priority === '') {
+                await removePriority(issueKey);
+                setCustomPriorities(prev => {
+                    const updated = { ...prev };
+                    delete updated[issueKey];
+                    return updated;
+                });
+            } else {
+                await storePriority(issueKey, priority);
+                setCustomPriorities(prev => ({
+                    ...prev,
+                    [issueKey]: priority
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to update priority:', error);
+            // Optionally show an error message to the user
+        }
+    };
+
+    const getPriorityColor = (priority: string) => {
+        switch (priority.toLowerCase()) {
+            case 'urgent':
+                return '#ef5350'; // red
+            case 'high':
+                return '#ff9800'; // orange
+            case 'medium':
+                return '#03a9f4'; // blue
+            case 'low':
+                return '#4caf50'; // green
+            default:
+                return undefined;
+        }
     };
 
     if (loading) {
@@ -234,7 +271,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                                         onChange={(e) => handleFilterChange('priority', e.target.value)}
                                         label="Priority"
                                     >
-                                        {priorityOptions.map((priority) => (
+                                        {customPriorityOptions.map((priority) => (
                                             <MenuItem key={priority} value={priority}>
                                                 {priority}
                                             </MenuItem>
@@ -292,14 +329,41 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                                                 <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                                                     {issue.key}
                                                 </Typography>
-                                                <Tooltip title="Priority">
-                                                    <Chip 
-                                                        icon={<PriorityHighIcon />}
-                                                        label={issue.fields.priority.name}
-                                                        color={getPriorityColor(issue.fields.priority.name)}
+                                                <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                    <Select
+                                                        value={customPriorities[issue.key] || ''}
+                                                        onChange={(e) => handlePriorityChange(issue.key, e.target.value)}
                                                         size="small"
-                                                    />
-                                                </Tooltip>
+                                                        sx={{
+                                                            height: 24,
+                                                            backgroundColor: getPriorityColor(customPriorities[issue.key] || ''),
+                                                            color: customPriorities[issue.key] ? 'white' : 'inherit',
+                                                            '& .MuiSelect-icon': {
+                                                                color: customPriorities[issue.key] ? 'white' : 'inherit'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <MenuItem value="">
+                                                            <em>No priority</em>
+                                                        </MenuItem>
+                                                        {customPriorityOptions.map((priority) => (
+                                                            <MenuItem 
+                                                                key={priority} 
+                                                                value={priority}
+                                                                sx={{
+                                                                    backgroundColor: getPriorityColor(priority),
+                                                                    color: 'white',
+                                                                    '&:hover': {
+                                                                        backgroundColor: getPriorityColor(priority),
+                                                                        opacity: 0.9
+                                                                    }
+                                                                }}
+                                                            >
+                                                                {priority}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
                                             </Box>
 
                                             <Typography variant="body1" sx={{ 
