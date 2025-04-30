@@ -39,6 +39,8 @@ const getStatusColor = (status: string) => {
             return 'info';
         case 'to do':
             return 'warning';
+        case 'dependencies':
+            return 'secondary';
         default:
             return 'default';
     }
@@ -58,7 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const [showFilters, setShowFilters] = useState(true);
     const [customPriorities, setCustomPriorities] = useState<CustomPriorities>({});
 
-    const statusOptions = ['To Do', 'In Progress', 'Done'];
+    const statusOptions = ['To Do', 'In Progress', 'Done', 'Dependencies'];
     const customPriorityOptions = ['Urgent', 'High', 'Medium', 'Low'];
 
     const DEFAULT_ASSIGNEES = ['Vakho Tabatadze', 'Gigi gvaramia'];
@@ -280,18 +282,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                                         ))}
                                     </Select>
                                 </FormControl>
-
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={filters.hasDependencies || false}
-                                            onChange={(e) => handleFilterChange('hasDependencies', e.target.checked)}
-                                            color="primary"
-                                        />
-                                    }
-                                    label="Has Dependencies"
-                                    sx={{ minWidth: 200 }}
-                                />
 
                                 <Button
                                     variant="outlined"
