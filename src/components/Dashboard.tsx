@@ -67,13 +67,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const [projects, setProjects] = useState<any[]>([]);
     const [assignees, setAssignees] = useState<any[]>([]);
     const [filters, setFilters] = useState<SearchParams>({});
-    const [showFilters, setShowFilters] = useState(false);
+    const [showFilters, setShowFilters] = useState(true);
 
     const statusOptions = ['To Do', 'In Progress', 'Done'];
     const priorityOptions = ['Highest', 'High', 'Medium', 'Low'];
 
-    // Remove hardcoded URL
-    // const JIRA_BASE_URL = 'https://repetitorai.atlassian.net';
+    const DEFAULT_ASSIGNEES = ['Vakho Tabatadze', 'Gigi gvaramia'];
 
     // Separate effect for fetching assignees
     useEffect(() => {
@@ -81,6 +80,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             try {
                 const assigneesData = await getAssignees();
                 setAssignees(assigneesData);
+                
+                // Set default assignees after loading the assignee data
+                const defaultAssigneeIds = assigneesData
+                    .filter(a => DEFAULT_ASSIGNEES.includes(a.displayName))
+                    .map(a => a.accountId);
+                
+                if (defaultAssigneeIds.length > 0) {
+                    setFilters(prev => ({ ...prev, assignee: defaultAssigneeIds }));
+                }
             } catch (err) {
                 console.error('Failed to fetch assignees:', err);
             }
