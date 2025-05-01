@@ -60,7 +60,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const [showFilters, setShowFilters] = useState(true);
     const [customPriorities, setCustomPriorities] = useState<CustomPriorities>({});
 
-    const statusOptions = ['To Do', 'In Progress', 'Done', 'Dependencies'];
+    const statusOptions = ['To Do', 'In Progress', 'Done', 'Dependencies', 'Dependency'];
     const customPriorityOptions = ['Urgent', 'High', 'Medium', 'Low'];
 
     const DEFAULT_ASSIGNEES = ['Vakho Tabatadze', 'Gigi gvaramia'];
